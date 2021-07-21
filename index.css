@@ -1,0 +1,43 @@
+.button.menu {
+  position: absolute;
+  top: 2%;
+  left: 42%;
+  color: blueviolet;
+  z-index: 1;
+}
+
+.button.menu.slide {
+  left: 2%;
+  z-index: 1;
+}
+
+.groupList {
+  position: absolute;
+  border: solid 1px #000000;
+  border-radius: 5px;
+  box-sizing: border-box;
+  flex-direction: column;
+  display: flex;
+  /* height: 700px; */
+  width: 40%;
+  top: 1%;
+  left: 1%;
+}
+
+.groupList.slide {
+left: -41%;
+}
+
+.groupList .toGroup{
+  flex-grow: 2;
+}
+
+.panelControl#basePanel {
+  position: fixed;
+  left: 45%;
+  bottom: 10px;
+}
+
+.hide {
+  display: none;
+}

@@ -1,178 +1,228 @@
-// Пример задач.
-// const JS = [[
-//   { completedToDo: false, textToDo: 'Список 1' }, { completedToDo: true, textToDo: 'Задача 1' }, { completedToDo: false, textToDo: 'Задача 2' }
-// ],
-// [
-//   { completedToDo: true, textToDo: 'Список 2' }, { completedToDo: true, textToDo: 'Задача 1' }, { completedToDo: true, textToDo: 'Задача 2' }
-// ]]
-// localStorage.setItem('toDo', JSON.stringify(JS));
+import { Group, Todo } from './classes.js';
+import { checkChange, checkCompleted, render, renderTodo, showPanel, trigger } from './functions.js';
 
-// Список задач, который заполнится с localStorage
-const toDoList = [];
+// import { getStart } from './sketet.js';
+// getStart();
 
-// Добавления места появления новых задач.
-const toDo = document.createElement('div');
-toDo.classList.add('to-do-list');
-document.body.appendChild(toDo);
-
-// Добавление элементов управления задачами
-const panel = document.createElement('div');
-panel.classList.add('panel-control');
-
-// Кнопка добавления общей задачи
-const buttonAdd = document.createElement('button');
-buttonAdd.textContent = '➕';
-buttonAdd.addEventListener('click', () => { createToDo() });
-panel.appendChild(buttonAdd);
-
-// Кнопка удаления выполненных задач
-const buttonDelete = document.createElement('button');
-buttonDelete.textContent = '🗑';
-buttonDelete.addEventListener('click', () => { deleteToDo() });
-panel.appendChild(buttonDelete);
-
-// Кнопка удаления всех задач.
-const buttonClear = document.createElement('button');
-buttonClear.textContent = '❌';
-buttonClear.addEventListener('click', () => { clearAllToDo() });
-panel.appendChild(buttonClear);
-document.body.appendChild(panel);
-
-load();
-
-// Сохранение всех задач в localStorage
-function save() {
-  localStorage.setItem('toDo', JSON.stringify(toDoList));
-}
-
-// Загрузка всех доступных задач c localStorage
+/** Загрузить список задач с localstorage */
 function load() {
-  const data = JSON.parse(localStorage.getItem('toDo') || '[]');
-  toDoList.splice(0, toDoList.length, ...data);
-  renderToDoList();
-  console.log(data); // ВРЕМЕННО
+  renderGroupTodo()
+  const baseDiv = document.getElementById('base');
+  const todoListNow = JSON.parse(localStorage.getItem('todoNow'));
+
+  if (!todoListNow) {
+    const text = document.createElement('div');
+    text.classList.add('NoTodo');
+    text.id = 'noTodo';
+    text.textContent = 'Откройте меню и выберите задачу';
+    baseDiv.appendChild(text);
+  } else {
+    const idGroup = todoListNow[0].idGroup;
+    renderTodo(idGroup, todoListNow);
+  }
 }
 
-// Вывод всех задач на экран
-function renderToDoList() {
-  toDo.textContent = '';
-  toDoList.forEach((elemToDo, idxToDo) => {
-    // Создание заголовка для задачи
-    const divElement = document.createElement('div');
-    divElement.classList.add('to-do');
-    // Место для подзадач
-    const placeUl = document.createElement('ul');
-    placeUl.id = idxToDo;
-    elemToDo.forEach((elem, idx) => {
+/** Рендер месторасположения для групп задач  */
+function renderGroupTodo() {
+  menu();
+  const groupListDiv = document.createElement('div');
+  groupListDiv.classList.add('groupList', 'slide');
+  groupListDiv.id = 'menu'
+  document.body.appendChild(groupListDiv);
 
-      // Кнопка выполнения
-      const inputCheck = document.createElement('input');
-      inputCheck.type = 'checkbox';
-      inputCheck.checked = elem.completedToDo;
-      inputCheck.addEventListener('input', () => { check(idxToDo, idx, inputCheck.checked) });
-      // Title
-      const nameHeaderToDo = document.createElement('div');
-      nameHeaderToDo.textContent = elem.textToDo;
-      nameHeaderToDo.title = elem.textToDo;
-      // Кнопка добавление новых задач
-      const buttonAddToDo = document.createElement('button');
-      buttonAddToDo.textContent = '➕';
-      buttonAddToDo.addEventListener('click', () => { createToDo(idxToDo) })
-      //Кнопка редактирования Title у заголовка
-      const buttonEditTitle = document.createElement('button');
-      buttonEditTitle.textContent = '✏';
-      buttonEditTitle.addEventListener('click', () => { edit(idxToDo, idx) });
-      // Кнопка удаления выбранного заголовка
-      const buttonDeleteToDo = document.createElement('button');
-      buttonDeleteToDo.textContent = '🗑';
-      buttonDeleteToDo.addEventListener('click', () => { deleteToDo(idxToDo, idx) })
-      // Кнопка показа задач у заголовка
-      const buttonShowToDo = document.createElement('button');
-      buttonShowToDo.textContent = '🔻';
-      buttonShowToDo.addEventListener('click', () => { showToDo(idxToDo) })
-      // Добавление всех элементов на экран
-      // Добавление заголовка
-      if (!idx) {
-        toDo.appendChild(inputCheck);
-        toDo.appendChild(nameHeaderToDo);
-        toDo.appendChild(buttonAddToDo);
-        toDo.appendChild(buttonEditTitle);
-        toDo.appendChild(buttonDeleteToDo);
-        toDo.appendChild(buttonShowToDo);
-        toDo.appendChild(placeUl);
-      }
-      // Добавление подзадач
-      if (idx) {
-        const liToDo = document.createElement('li');
-        liToDo.appendChild(inputCheck);
-        liToDo.appendChild(nameHeaderToDo);
-        liToDo.appendChild(buttonEditTitle);
-        liToDo.appendChild(buttonDeleteToDo);
-        placeUl.appendChild(liToDo);
-      }
+  const toGroupDiv = document.createElement('div');
+  toGroupDiv.id = 'toGroup'
+  toGroupDiv.classList.add('toGroup');
+  groupListDiv.appendChild(toGroupDiv);
 
-    })
+  renderGroupContent();
+  renderPanelControl(groupListDiv, 'groupPanel', 'Group')
+}
+
+
+/** Вывод содержимого меню с группой задач */
+function renderGroupContent() {
+  /** Массив с объектами задач */
+  const todoGroup = JSON.parse(localStorage.getItem('todoGroup'));
+
+  const toGroupDiv = document.getElementById('toGroup');
+  toGroupDiv.innerHTML = null;
+  
+  todoGroup.forEach((todo) => {
+
+    // Создание места для каждой группы задач
+    const groupTodoDiv = document.createElement('div');
+    groupTodoDiv.classList.add('todoGroup');
+    const panelDiv = document.createElement('div');
+    panelDiv.classList.add('panel');
+    toGroupDiv.appendChild(groupTodoDiv);
+    toGroupDiv.appendChild(panelDiv);
+
+    // Создание и настройка каждого элемента группы задач
+    const elem = new Group(todo.textGroup, todo.tags, todo.completedGroup, todo.id);
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = todo.completedGroup;
+    check.classList.add('checkComplete');
+    const textDiv = document.createElement('div');
+    textDiv.textContent = elem.textGroup;
+    textDiv.setAttribute('todo', elem.id);
+    textDiv.addEventListener('click', render)
+    const checkShow = document.createElement('input');
+    checkShow.type = 'checkbox';
+    checkShow.classList.add('checkShow');
+    groupTodoDiv.appendChild(check);
+    groupTodoDiv.appendChild(textDiv)
+    groupTodoDiv.appendChild(checkShow)
+
+    // Создание дополнительных кнопок опций
+    const changeButton = document.createElement('button');
+    changeButton.textContent = '✏';
+    changeButton.addEventListener('click', () => { trigger.changeTodo() })
+    const removeButton = document.createElement('button');
+    removeButton.textContent = '🗑';
+    removeButton.addEventListener('click', () => { trigger.deleteTodo() })
+    panelDiv.appendChild(changeButton);
+    panelDiv.appendChild(removeButton);
+
+    // Проверка присутствия ключа в localStorage
+    const checkValueStorage = JSON.parse(localStorage.getItem(`todo${elem.id}`));
+    if(checkValueStorage === null) localStorage.setItem(`todo${elem.id}`, JSON.stringify([]));
+
   })
 }
 
-// Удаление всех заголовок
-function clearAllToDo() {
-  localStorage.clear();
-  load();
+/** Прорисовка список выбранных задач */
+function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo) {
+  todoListDiv.innerHTML = null;
+  const listUl = document.createElement('ul');
+  listUl.classList.add('todoUl')
+  todoListDiv.appendChild(listUl);
+
+  todoArray.forEach((elem, index) => {
+    const todo = new Todo(numIdGroup, parentTodo, index, elem.todo, elem.textTodo, elem.tags, elem.completedTodo, elem.idTodo);
+
+    const todoLi = document.createElement('li');
+    todoLi.classList.add('mainTodo');
+    listUl.appendChild(todoLi);
+
+    const completeInput = document.createElement('input');
+    completeInput.type = 'checkbox';
+    completeInput.checked = todo.completedTodo;
+    completeInput.addEventListener('change', () => {checkCompleted(completeInput.checked, todo, parentTodo)})
+    completeInput.classList.add('completeCheck')
+    const textTodoDiv = document.createElement('div');
+    textTodoDiv.textContent = todo.textTodo;
+    textTodoDiv.classList.add('textTodo');
+    const todoLengthDiv = document.createElement('div');
+    todoLengthDiv.classList.add('todoLength');
+    const additionalMenuInput = document.createElement('input');
+    additionalMenuInput.type = 'checkbox';
+    additionalMenuInput.classList.add('menuShow');
+    const nextTodoInput = document.createElement('input');
+    nextTodoInput.type = 'checkbox';
+    nextTodoInput.classList.add('nextTodoShow', 'hide');
+    const additionalMenuDiv = document.createElement('div');
+    additionalMenuDiv.classList.add('additionalMenu');
+    const nextTodoDiv = document.createElement('div');
+    nextTodoDiv.classList.add('SecondaryTodo');
+
+    todoLi.appendChild(completeInput);
+    todoLi.appendChild(textTodoDiv);
+    todoLi.appendChild(todoLengthDiv);
+    todoLi.appendChild(additionalMenuInput);
+    todoLi.appendChild(nextTodoInput);
+    todoLi.appendChild(additionalMenuDiv);
+    todoLi.appendChild(nextTodoDiv);
+
+    const addTodoButton = document.createElement('button');
+    addTodoButton.classList.add('button', 'addTodo');
+    addTodoButton.textContent = '➕';
+    addTodoButton.addEventListener('click', () => { trigger.addWithTodo(todo, parentTodo, index) });
+    const changeTodoButton = document.createElement('button');
+    changeTodoButton.classList.add('button', 'changeTodo');
+    changeTodoButton.textContent = '✏'
+    changeTodoButton.addEventListener('click', () => { trigger.changeTodo('textTodo', todo)});
+    const deleteTodoButton = document.createElement('button');
+    deleteTodoButton.classList.add('button', 'deleteTodo');
+    deleteTodoButton.textContent = '🗑'
+    deleteTodoButton.addEventListener('click', () => { trigger.deleteTodo(todo, parentTodo) });
+
+    additionalMenuDiv.appendChild(addTodoButton);
+    additionalMenuDiv.appendChild(changeTodoButton);
+    additionalMenuDiv.appendChild(deleteTodoButton);
+
+    // Проверка на дополнительные задачи и показ их количества с выполенными задачами
+    if (todo.todo.length > 0) {
+      nextTodoInput.classList.remove('hide');
+      const arrMap = todo.todo.map(value => value.completedTodo);
+      const arrComplete = arrMap.filter(value => value === true);
+      todoLengthDiv.textContent = `${arrComplete.length}\\${arrMap.length}`;
+      if(arrComplete.length === arrMap.length) {
+        checkChange(true, todo, parentTodo);
+      } else {
+        checkChange(false, todo, parentTodo);
+      }
+
+      if(Array.isArray(todo)) todo = todo.todo;
+      detailRenderTodo(todo.todo, numIdGroup, nextTodoDiv, todo);
+    }
+  })
 }
 
-// Редактирование состояние задач
-function check(idxToDo, idx, check) {
-  toDoList[idxToDo][idx].completedToDo = check;
-  // Проверка заголовка и установка готовности/неготовности для подзадач
-  if (idx === 0) {
-    toDoList[idxToDo].forEach(i => i.completedToDo = check)
-  }
-  // Проверка подзадач и установка готовности/неготовки у заголовка
-  if (idx !== 0) {
-    toDoList[idxToDo][0].completedToDo = toDoList[idxToDo].every((i, idx) => {
-      if(!idx) return true;
-      return i.completedToDo;
-    })
-  }
-  save();
-  renderToDoList()
+/** Вывод панели управления */
+function renderPanelControl(nodeElement, idElement, idGroupTodo) {
+  const panelControlDiv = document.createElement('div');
+  panelControlDiv.classList.add('panelControl');
+  panelControlDiv.id = idElement;
+  nodeElement.appendChild(panelControlDiv);
+
+  const button = [
+    {
+      textContent: '➕',
+      classList: 'button',
+      event: () => { trigger.addGroup(idElement, idGroupTodo) },
+    },
+    {
+      textContent: '🗑',
+      classList: 'button',
+      event: () => { trigger.deleteGroup(idElement, idGroupTodo) },
+    },
+    {
+      textContent: '❌',
+      classList: 'button',
+      event: () => { trigger.clearAllGroup(idElement, idGroupTodo) }
+    },
+  ]
+
+  button.forEach(elem => {
+    const but = document.createElement('button');
+    but.textContent = elem.textContent;
+    but.classList.add(elem.classList);
+    but.addEventListener('click', elem.event)
+    panelControlDiv.appendChild(but)
+  })
 }
 
-// Добавление задачи и  подзадачи
-function createToDo(idxToDo) {
-  const item = {
-    completedToDo: false,
-    textToDo: ''
-  };
+/** Рендер основного местоположения всех задач и кнопки меню */
+function menu() {
+  const baseDiv = document.createElement('div')
+  baseDiv.classList.add('base');
+  baseDiv.id = 'base'
+  document.body.appendChild(baseDiv);
+  const todoList = document.createElement('div')
+  todoList.classList.add('todoList');
+  todoList.id = 'todoList';
 
-  if(!arguments.length){
-    toDoList.push([item]);
-    edit(toDoList.length - 1, 0);
-  }
-  if(arguments.length){
-    toDoList[idxToDo].push(item);
-    edit(idxToDo,toDoList[idxToDo].length-1);
-  }
+  const menuButton = document.createElement('button');
+  menuButton.classList.add('button', 'menu', 'slide');
+  menuButton.id = 'menuButton';
+  menuButton.textContent = '⇶'
+  menuButton.addEventListener('click', showPanel)
+  baseDiv.appendChild(menuButton);
+  baseDiv.appendChild(todoList)
 }
 
-// Редактирование Title у задач
-function edit(idxToDo, idx) {
-  toDoList[idxToDo][idx].textToDo = prompt('Ввведите новую задачу', toDoList[idxToDo][idx].textToDo);
-  save();
-  renderToDoList();
-}
+load();
 
-// Удаление заголовки и подзадач
-function deleteToDo(idxToDo, idx) {
-  if(!arguments.length) toDoList.splice(0, toDoList.length, ...toDoList.filter(elem => !elem[0].completedToDo));
-  if(!idx) toDoList.splice(idxToDo, 1);
-  if(idx) toDoList[idxToDo].splice(idx, 1);
-  save();
-  renderToDoList();
-}
-
-// Показать/скрыть подзадачи
-function showToDo(idxToDo) {
-  document.getElementById(idxToDo).classList.toggle('show');
-}
+export { detailRenderTodo, renderPanelControl, renderGroupContent}

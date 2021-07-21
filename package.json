@@ -1,0 +1,24 @@
+{
+  "name": "todo-list",
+  "version": "1.0.0",
+  "description": "An application for creating tasks and tracking their progress",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sharkeron5000/ToDo-List.git"
+  },
+  "keywords": [
+    "ToDo",
+    "ToDoList",
+    "JS"
+  ],
+  "author": "Sharkeron <Sharkeron5000@yandex.ru>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sharkeron5000/ToDo-List/issues"
+  },
+  "homepage": "https://github.com/Sharkeron5000/ToDo-List#readme"
+}
