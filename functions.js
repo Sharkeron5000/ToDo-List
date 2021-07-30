@@ -2,23 +2,23 @@
 import { Group, Todo } from './classes.js';
 import { detailRenderTodo, renderPanelControl, renderGroupContent } from './index.js';
 
+export function firstLaunch() {
+  localStorage.setItem('todoGroup', '[]');
+}
+
 /**Получить номер задачи и передать ее на отображение */
 export function render() {
   const findId = +this.getAttribute('todo');
-  const baseDiv = document.getElementById('base');
-  const panelControl = document.getElementById('basePanel');
-  const todo = localStorage.getItem(`todo${findId}`);
+  const todo = JSON.parse(localStorage.getItem(`todo${findId}`));
+  localStorage.setItem('todoNow', JSON.stringify(todo))
 
   showPanel();
   renderGroupContent();
-  renderTodo(findId);
+  renderTodo(findId, todo);
 }
 
 /** Вывести список задач на экран */
 export function renderTodo(numIdGroup, todoListNow) {
-  const todoStorage = JSON.parse(localStorage.getItem(`todo${numIdGroup}`));
-  const now = (todoStorage.length === 0) ? 0 : todoStorage;
-  localStorage.setItem('todoNow', JSON.stringify(now));
   const baseDiv = document.getElementById('base');
   const todoListDiv = document.getElementById('todoList');
   const noTodo = document.getElementById('noTodo');
@@ -27,16 +27,18 @@ export function renderTodo(numIdGroup, todoListNow) {
   if (panel) baseDiv.removeChild(panel);
   if (noTodo) baseDiv.removeChild(noTodo);
 
-  if (!todoStorage || todoStorage.length === 0) {
+  if (!todoListNow || todoListNow.length === 0) {
     todoListDiv.innerHTML = null;
 
     const noTodoNext = document.getElementById('todoList');
     noTodoNext.textContent = 'Задач не найдено';
+    console.log('NoTodo', numIdGroup);
     renderPanelControl(baseDiv, 'basePanel', numIdGroup);
     return null;
   }
 
-  detailRenderTodo(todoStorage, numIdGroup, todoListDiv, todoStorage)
+  detailRenderTodo(todoListNow, numIdGroup, todoListDiv)
+  console.log('Todo', numIdGroup);
   renderPanelControl(baseDiv, 'basePanel', numIdGroup);
 }
 
@@ -60,30 +62,20 @@ export function save(idGroup, todo) {
   const now = (todo.length === 0) ? 0 : todo;
 
   localStorage.setItem(`todo${idGroup}`, JSON.stringify(todo));
+
   if (idGroup !== "Group") {
-    renderTodo(idGroup);
+    renderTodo(idGroup, now);
+    localStorage.setItem(`todoNow`, JSON.stringify(now));
   }
   renderGroupContent();
 }
 
-/** Заполнение количество выполненных задач и их количество */
-// export function todoLength(divElement, todo) {
-//   const arrMap = todo.todo.map(value => value.completedTodo);
-//   const arrComplete = arrMap.filter(value => value === true);
-//   divElement.textContent = `${arrComplete.length}\\${arrMap.length}`;
-// }
-
 /** Проверка и изменение выполненой задачи  */
-export function checkCompleted(check, todo, parentTodo) {
+export function checkCompleted(check, todo) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${todo.idGroup}`));
-  eachArr('check', todoArr, todo, parentTodo, check);
-  // ДОДЕЛАТЬ ЗАВЕРШЕНИЕ ДОЧЕРНИХ ПОДЗАДАЧ
+  eachArr('check', todoArr, todo, check);
+  // checkChangeTodo(todo)
   save(todo.idGroup, todoArr)
-}
-
-/**изменение основной задачи, при завершении всех подзадач */
-export function checkChange(boolean, todo, parentTodo) {
-
 }
 
 /** Удалить подзадачи в основных заданиях */
@@ -103,25 +95,21 @@ function clear(todo, conf) {
  * @todo Список задач или переменная, с которым надо работать
  * @name дополнительная переменная. Задает имя изменяемой переменной 
 */
-function eachArr(event, todoArr, todoEvent, todo = null, name = null) {
+export function eachArr(event, todoArr, todoEvent, todo = null, name = null) {
   todoArr.forEach(elem => {
-    console.log('TodoArr', todoArr);
-    console.log('TodoEvent', todoEvent);
-    console.log('Todo', todo);
     if (event === 'push' && elem.idTodo === todoEvent.idTodo) elem.todo.push(todo);
     if (event === 'delete' && elem.idTodo === todoEvent.idTodo) elem.todo.splice(elem.todo.findIndex(elem => elem.idTodo === todo.idTodo), 1);
     if (event === 'change' && elem.idTodo === todoEvent.idTodo) elem[name] = todo;
+    if (event === 'completed') elem.completedTodo = todo;
     if (event === 'check' && elem.idTodo === todoEvent.idTodo) {
       elem.completedTodo = todo;
-      
-
-      if (!Array.isArray(todo)) todo.completedTodo = todo.todo.every(todoWith => todoWith.completedTodo === true)
+      if (elem.todo.length !== 0) eachArr('completed', elem.todo, todoEvent, todo)
     }
-    if (elem.todo.length !== 0) eachArr(event, elem.todo, todoEvent, todo, name);
+    if (elem.todo && elem.todo.length !== 0) eachArr(event, elem.todo, todoEvent, todo, name);
   })
 }
 
-// Далее идут тригеры для кнопок в DOM
+// Далее идут ТРИГЕРЫ для кнопок в DOM
 /**Добавление новых задач в группу или основной список*/
 function addGroup(idElement, idGroup) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${idGroup}`));
@@ -139,7 +127,6 @@ function addGroup(idElement, idGroup) {
 /** Удаление выполеннных задач из группы или основного списка*/
 function deleteGroup(idElement, idGroup) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${idGroup}`))
-  console.log(todoArr);
   if (idElement === 'groupPanel') {
     const conf = confirm('Вы точно хотите удалить все завершенные группы задач?');
     if (!conf) return alert("Вы отменили удаление");
@@ -156,6 +143,11 @@ function deleteGroup(idElement, idGroup) {
 
 /** Удаление всех задач в группе или основного списка */
 function clearAllGroup(idElement, idGroup) {
+  const check = JSON.parse(localStorage.getItem(`todo${idGroup}`));
+  if (check.length === 0) return alert('Здесь нечего удалять');
+
+  const conf = confirm('Вы точно хотите удалить все группы и все связанные с ними задачи?');
+  if (!conf) return alert('Вы отменили удаление')
   if (idElement === 'groupPanel') {
     localStorage.clear();
   }
@@ -165,16 +157,16 @@ function clearAllGroup(idElement, idGroup) {
 /** Добавление новых подзадач */
 function addWithTodo(todoParent, todo) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${todoParent.idGroup}`));
-  const todo = new Todo(todoParent.idGroup);
+  const todoGroup = new Todo(todoParent.idGroup);
 
-  eachArr('push', todoArr, todoParent, todo);
+  eachArr('push', todoArr, todoParent, todoGroup);
   save(todoParent.idGroup, todoArr)
 }
 
 /** Изменить любую выбранную задачу */
 function changeTodo(name, todo) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${todo.idGroup}`));
-  if (name === 'textTodo') {
+  if (name === 'text') {
     let newTodoText = prompt('Введите новое название задачи', 'Тест') || '';
     eachArr('change', todoArr, todo, newTodoText, name)
   }
@@ -187,14 +179,17 @@ function changeTodo(name, todo) {
 }
 
 /** Удалить любую выбранную задачу */
-function deleteTodo(todo, parentTodo) {
+function deleteTodo(todo, parentTodo = null) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${todo.idGroup}`));
-
-  if (Array.isArray(parentTodo) && parentTodo[0].idGroup === todoArr[0].idGroup) {
-    todoArr.splice(todoArr.findIndex(elem => elem.idTodo === todo.idTodo), 1)
-    return save(todo.idGroup, todoArr);
+  if (todo.idGroup === 'Group') {
+    todoArr.splice(0, todoArr.length, ...todoArr.filter(elem => elem.idTodo !== todo.idTodo));
+  } else {
+    if (Array.isArray(parentTodo) && parentTodo[0].idGroup === todoArr[0].idGroup) {
+      todoArr.splice(todoArr.findIndex(elem => elem.idTodo === todo.idTodo), 1)
+      return save(todo.idGroup, todoArr);
+    }
+    eachArr('delete', todoArr, parentTodo, todo)
   }
-  eachArr('delete', todoArr, parentTodo, todo)
 
   save(todo.idGroup, todoArr);
 }

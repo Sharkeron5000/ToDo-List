@@ -3,7 +3,7 @@ import { save } from "./functions.js";
 /** Группа задач, выводщаяся в главном меню */
 class Group {
   /** Название группы */
-  textGroup;
+  text;
   /** Теги */
   tags;
   /**Идентификатор группы */
@@ -11,15 +11,16 @@ class Group {
   /**Завершена задача или нет */
   completedGroup
 
-  constructor(text, tags, completed, id = null) {
-    this.textGroup = text || prompt('Введите название группы') || '';
+  constructor(text, tags, completed, idTodo = null) {
+    this.text = text || prompt('Введите название группы') || '';
     // this.tags = tags || prompt('Введите теги, через запятую', '').split(',') || [];
     this.tags = [];
     this.completedGroup = completed || false;
-    if(id === null) {
-      this.id = Group.#id
+    this.idGroup = 'Group'
+    if(idTodo === null) {
+      this.idTodo = Group.#id
     } else {
-      this.id = id
+      this.idTodo = idTodo
     }
     Group.#id++
   }
@@ -28,7 +29,7 @@ class Group {
 /**Класс хранящий структуру с задачами и свойствами */
 class Todo {
   /** Название задачи */
-  textTodo;
+  text;
   /** Статус выполнения */
   completedTodo;
   /** Теги у задачи */
@@ -37,22 +38,25 @@ class Todo {
   todo;
   /** Номер принадлежащей группе */
   idGroup;
+  /**Индекс элемента в массиве */
+  index;
   /**Родительский массив */
   parent;
-  /**Индекс элемента в родитеском массиве */
-  index;
+  /**Индекс родительского массива */
+  parentIndex
   /** Номер задачи */
   static #id = 0;
 
-  constructor(idGroup, parent, index, todo = [], text, tags, completed = false, id = null) {
-    this.textTodo = text || prompt('Название задачи', 'Тест') || '';
+  constructor(idGroup, parent = [], index, todo = [], text, tags, completed = false, id = null) {
+    this.text = text || prompt('Название задачи', 'Тест') || '';
     this.completedTodo = completed;
     // this.tags = tags || prompt('Введите теги, через запятую', '').split(',') || [];
     this.tags = [];
     this.todo = todo;
     this.idGroup = idGroup;
+    this.index = index;
     this.parent = parent;
-    this.index = index
+    if(parent.length !==0) this.parentIndex = parent.index
     if(id === null) {
       this.idTodo = Todo.#id
     } else {

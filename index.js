@@ -1,16 +1,20 @@
 import { Group, Todo } from './classes.js';
-import { checkChange, checkCompleted, render, renderTodo, showPanel, trigger } from './functions.js';
-
-// import { getStart } from './sketet.js';
-// getStart();
+import { checkCompleted, eachArr, firstLaunch, render, renderTodo, save, showPanel, trigger } from './functions.js';
 
 /** Загрузить список задач с localstorage */
 function load() {
-  renderGroupTodo()
-  const baseDiv = document.getElementById('base');
-  const todoListNow = JSON.parse(localStorage.getItem('todoNow'));
+  let storageGroup = JSON.parse(localStorage.getItem('todoGroup'))
 
-  if (!todoListNow) {
+  if (storageGroup === null) {
+    firstLaunch();
+    storageGroup = [];
+  }
+
+  renderGroupTodo(storageGroup)
+  const baseDiv = document.getElementById('base');
+  const todoListNow = JSON.parse(localStorage.getItem('todoNow')) || 0;
+
+  if (!todoListNow || todoListNow.length === 0) {
     const text = document.createElement('div');
     text.classList.add('NoTodo');
     text.id = 'noTodo';
@@ -23,7 +27,7 @@ function load() {
 }
 
 /** Рендер месторасположения для групп задач  */
-function renderGroupTodo() {
+function renderGroupTodo(localstorageGroup) {
   menu();
   const groupListDiv = document.createElement('div');
   groupListDiv.classList.add('groupList', 'slide');
@@ -35,7 +39,7 @@ function renderGroupTodo() {
   toGroupDiv.classList.add('toGroup');
   groupListDiv.appendChild(toGroupDiv);
 
-  renderGroupContent();
+  if (localstorageGroup.length) renderGroupContent();
   renderPanelControl(groupListDiv, 'groupPanel', 'Group')
 }
 
@@ -47,7 +51,7 @@ function renderGroupContent() {
 
   const toGroupDiv = document.getElementById('toGroup');
   toGroupDiv.innerHTML = null;
-  
+
   todoGroup.forEach((todo) => {
 
     // Создание места для каждой группы задач
@@ -59,14 +63,15 @@ function renderGroupContent() {
     toGroupDiv.appendChild(panelDiv);
 
     // Создание и настройка каждого элемента группы задач
-    const elem = new Group(todo.textGroup, todo.tags, todo.completedGroup, todo.id);
+    const elem = new Group(todo.text, todo.tags, todo.completedGroup, todo.idTodo);
     const check = document.createElement('input');
     check.type = 'checkbox';
     check.checked = todo.completedGroup;
+    check.addEventListener('change', () => {checkCompleted(todo.completedGroup, elem)})
     check.classList.add('checkComplete');
     const textDiv = document.createElement('div');
-    textDiv.textContent = elem.textGroup;
-    textDiv.setAttribute('todo', elem.id);
+    textDiv.textContent = elem.text;
+    textDiv.setAttribute('todo', elem.idTodo);
     textDiv.addEventListener('click', render)
     const checkShow = document.createElement('input');
     checkShow.type = 'checkbox';
@@ -78,29 +83,29 @@ function renderGroupContent() {
     // Создание дополнительных кнопок опций
     const changeButton = document.createElement('button');
     changeButton.textContent = '✏';
-    changeButton.addEventListener('click', () => { trigger.changeTodo() })
+    changeButton.addEventListener('click', () => { trigger.changeTodo('text', elem) })
     const removeButton = document.createElement('button');
     removeButton.textContent = '🗑';
-    removeButton.addEventListener('click', () => { trigger.deleteTodo() })
+    removeButton.addEventListener('click', () => { trigger.deleteTodo(elem) })
     panelDiv.appendChild(changeButton);
     panelDiv.appendChild(removeButton);
 
     // Проверка присутствия ключа в localStorage
-    const checkValueStorage = JSON.parse(localStorage.getItem(`todo${elem.id}`));
-    if(checkValueStorage === null) localStorage.setItem(`todo${elem.id}`, JSON.stringify([]));
+    const checkValueStorage = JSON.parse(localStorage.getItem(`todo${elem.idTodo}`));
+    if (checkValueStorage === null) localStorage.setItem(`todo${elem.idTodo}`, JSON.stringify([]));
 
   })
 }
 
 /** Прорисовка список выбранных задач */
-function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo) {
+function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
   todoListDiv.innerHTML = null;
   const listUl = document.createElement('ul');
   listUl.classList.add('todoUl')
   todoListDiv.appendChild(listUl);
 
   todoArray.forEach((elem, index) => {
-    const todo = new Todo(numIdGroup, parentTodo, index, elem.todo, elem.textTodo, elem.tags, elem.completedTodo, elem.idTodo);
+    const todo = new Todo(numIdGroup, parentTodo, index, elem.todo, elem.text, elem.tags, elem.completedTodo, elem.idTodo);
 
     const todoLi = document.createElement('li');
     todoLi.classList.add('mainTodo');
@@ -109,30 +114,35 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo) {
     const completeInput = document.createElement('input');
     completeInput.type = 'checkbox';
     completeInput.checked = todo.completedTodo;
-    completeInput.addEventListener('change', () => {checkCompleted(completeInput.checked, todo, parentTodo)})
+    completeInput.addEventListener('change', () => { checkCompleted(completeInput.checked, todo) })
     completeInput.classList.add('completeCheck')
     const textTodoDiv = document.createElement('div');
-    textTodoDiv.textContent = todo.textTodo;
+    textTodoDiv.textContent = todo.text;
     textTodoDiv.classList.add('textTodo');
     const todoLengthDiv = document.createElement('div');
     todoLengthDiv.classList.add('todoLength');
+
     const additionalMenuInput = document.createElement('input');
     additionalMenuInput.type = 'checkbox';
+    additionalMenuInput.id = 'menuShow';
     additionalMenuInput.classList.add('menuShow');
     const nextTodoInput = document.createElement('input');
     nextTodoInput.type = 'checkbox';
+    nextTodoInput.id = 'nextTodoShow';
     nextTodoInput.classList.add('nextTodoShow', 'hide');
     const additionalMenuDiv = document.createElement('div');
+    additionalMenuDiv.id = 'additionalMenu';
     additionalMenuDiv.classList.add('additionalMenu');
     const nextTodoDiv = document.createElement('div');
+    nextTodoDiv.id = 'SecondaryTodo';
     nextTodoDiv.classList.add('SecondaryTodo');
 
     todoLi.appendChild(completeInput);
     todoLi.appendChild(textTodoDiv);
     todoLi.appendChild(todoLengthDiv);
     todoLi.appendChild(additionalMenuInput);
-    todoLi.appendChild(nextTodoInput);
     todoLi.appendChild(additionalMenuDiv);
+    todoLi.appendChild(nextTodoInput);
     todoLi.appendChild(nextTodoDiv);
 
     const addTodoButton = document.createElement('button');
@@ -142,7 +152,7 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo) {
     const changeTodoButton = document.createElement('button');
     changeTodoButton.classList.add('button', 'changeTodo');
     changeTodoButton.textContent = '✏'
-    changeTodoButton.addEventListener('click', () => { trigger.changeTodo('textTodo', todo)});
+    changeTodoButton.addEventListener('click', () => { trigger.changeTodo('text', todo) });
     const deleteTodoButton = document.createElement('button');
     deleteTodoButton.classList.add('button', 'deleteTodo');
     deleteTodoButton.textContent = '🗑'
@@ -154,17 +164,13 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo) {
 
     // Проверка на дополнительные задачи и показ их количества с выполенными задачами
     if (todo.todo.length > 0) {
+      const storageNow = JSON.parse(localStorage.getItem('todoNow'));
+
       nextTodoInput.classList.remove('hide');
       const arrMap = todo.todo.map(value => value.completedTodo);
       const arrComplete = arrMap.filter(value => value === true);
       todoLengthDiv.textContent = `${arrComplete.length}\\${arrMap.length}`;
-      if(arrComplete.length === arrMap.length) {
-        checkChange(true, todo, parentTodo);
-      } else {
-        checkChange(false, todo, parentTodo);
-      }
 
-      if(Array.isArray(todo)) todo = todo.todo;
       detailRenderTodo(todo.todo, numIdGroup, nextTodoDiv, todo);
     }
   })
@@ -225,4 +231,4 @@ function menu() {
 
 load();
 
-export { detailRenderTodo, renderPanelControl, renderGroupContent}
+export { detailRenderTodo, renderPanelControl, renderGroupContent }
