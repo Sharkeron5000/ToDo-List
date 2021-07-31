@@ -43,11 +43,13 @@ class Todo {
   /**Родительский массив */
   parent;
   /**Индекс родительского массива */
-  parentIndex
+  parentIndex;
+  /**Показывать подзадачи */
+  show
   /** Номер задачи */
   static #id = 0;
 
-  constructor(idGroup, parent = [], index, todo = [], text, tags, completed = false, id = null) {
+  constructor(idGroup, parent = [], index, todo = [], text, tags, completed = false, show = true, id = null) {
     this.text = text || prompt('Название задачи', 'Тест') || '';
     this.completedTodo = completed;
     // this.tags = tags || prompt('Введите теги, через запятую', '').split(',') || [];
@@ -56,6 +58,7 @@ class Todo {
     this.idGroup = idGroup;
     this.index = index;
     this.parent = parent;
+    this.show = show;
     if(parent.length !==0) this.parentIndex = parent.index
     if(id === null) {
       this.idTodo = Todo.#id

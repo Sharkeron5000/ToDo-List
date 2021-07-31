@@ -1,5 +1,5 @@
 import { Group, Todo } from './classes.js';
-import { checkCompleted, eachArr, firstLaunch, render, renderTodo, save, showPanel, trigger } from './functions.js';
+import { checkCompleted, eachArr, firstLaunch, render, renderTodo, save, show, showPanel, trigger } from './functions.js';
 
 /** Загрузить список задач с localstorage */
 function load() {
@@ -67,7 +67,7 @@ function renderGroupContent() {
     const check = document.createElement('input');
     check.type = 'checkbox';
     check.checked = todo.completedGroup;
-    check.addEventListener('change', () => {checkCompleted(todo.completedGroup, elem)})
+    check.addEventListener('change', () => { checkCompleted(todo.completedGroup, elem) })
     check.classList.add('checkComplete');
     const textDiv = document.createElement('div');
     textDiv.textContent = elem.text;
@@ -105,7 +105,7 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
   todoListDiv.appendChild(listUl);
 
   todoArray.forEach((elem, index) => {
-    const todo = new Todo(numIdGroup, parentTodo, index, elem.todo, elem.text, elem.tags, elem.completedTodo, elem.idTodo);
+    const todo = new Todo(numIdGroup, parentTodo, index, elem.todo, elem.text, elem.tags, elem.completedTodo, elem.show, elem.idTodo);
 
     const todoLi = document.createElement('li');
     todoLi.classList.add('mainTodo');
@@ -121,28 +121,29 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
     textTodoDiv.classList.add('textTodo');
     const todoLengthDiv = document.createElement('div');
     todoLengthDiv.classList.add('todoLength');
-
-    const additionalMenuInput = document.createElement('input');
-    additionalMenuInput.type = 'checkbox';
-    additionalMenuInput.id = 'menuShow';
-    additionalMenuInput.classList.add('menuShow');
-    const nextTodoInput = document.createElement('input');
-    nextTodoInput.type = 'checkbox';
-    nextTodoInput.id = 'nextTodoShow';
-    nextTodoInput.classList.add('nextTodoShow', 'hide');
+    const additionalMenuButton = document.createElement('button');
+    additionalMenuButton.classList.add('button', 'menuShow');
+    additionalMenuButton.id = `additionalMenuButton${todo.idTodo}`
+    additionalMenuButton.textContent = '...';
     const additionalMenuDiv = document.createElement('div');
-    additionalMenuDiv.id = 'additionalMenu';
-    additionalMenuDiv.classList.add('additionalMenu');
+    additionalMenuDiv.id = `additionalMenu${todo.idTodo}`;
+    additionalMenuDiv.classList.add('additionalMenu', 'hide');
+    const nextTodoButton = document.createElement('button');
+    nextTodoButton.classList.add('button', 'nextTodo', 'hide', 'show');
+    nextTodoButton.textContent = '🔻';
+    nextTodoButton.id = `nextTodoButton${todo.idTodo}`;
     const nextTodoDiv = document.createElement('div');
-    nextTodoDiv.id = 'SecondaryTodo';
-    nextTodoDiv.classList.add('SecondaryTodo');
+    nextTodoDiv.id = `secondaryTodo${todo.idTodo}`;
+    nextTodoDiv.classList.add('secondaryTodo');
+    additionalMenuButton.addEventListener('click', () => {show(additionalMenuButton.id, additionalMenuDiv.id)})
+    nextTodoButton.addEventListener('click', () => {show(nextTodoButton.id, nextTodoDiv.id, todo)});
 
     todoLi.appendChild(completeInput);
     todoLi.appendChild(textTodoDiv);
     todoLi.appendChild(todoLengthDiv);
-    todoLi.appendChild(additionalMenuInput);
+    todoLi.appendChild(additionalMenuButton);
     todoLi.appendChild(additionalMenuDiv);
-    todoLi.appendChild(nextTodoInput);
+    todoLi.appendChild(nextTodoButton);
     todoLi.appendChild(nextTodoDiv);
 
     const addTodoButton = document.createElement('button');
@@ -166,7 +167,7 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
     if (todo.todo.length > 0) {
       const storageNow = JSON.parse(localStorage.getItem('todoNow'));
 
-      nextTodoInput.classList.remove('hide');
+      nextTodoButton.classList.remove('hide');
       const arrMap = todo.todo.map(value => value.completedTodo);
       const arrComplete = arrMap.filter(value => value === true);
       todoLengthDiv.textContent = `${arrComplete.length}\\${arrMap.length}`;

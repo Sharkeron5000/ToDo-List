@@ -32,13 +32,11 @@ export function renderTodo(numIdGroup, todoListNow) {
 
     const noTodoNext = document.getElementById('todoList');
     noTodoNext.textContent = 'Задач не найдено';
-    console.log('NoTodo', numIdGroup);
     renderPanelControl(baseDiv, 'basePanel', numIdGroup);
     return null;
   }
 
   detailRenderTodo(todoListNow, numIdGroup, todoListDiv)
-  console.log('Todo', numIdGroup);
   renderPanelControl(baseDiv, 'basePanel', numIdGroup);
 }
 
@@ -88,6 +86,19 @@ function clear(todo, conf) {
   }
 }
 
+/**Изменение показа/непоказа дополнительного меню и подзадач */
+export function show(idEvent, idTarget, todo = null) {
+  document.getElementById(idEvent).classList.toggle('show');
+  document.getElementById(idTarget).classList.toggle('hide');
+
+  const storage = localStorage.getItem('now');
+  if (idTarget === 'secondaryTodo') {
+    eachArr('show', storage, todo);
+    save(todo.idGroup, storage);  
+  }
+
+}
+
 /**Перебор масива 
  * @event наименование тригера
  * @todoArr Массив который надо перебрать
@@ -100,6 +111,7 @@ export function eachArr(event, todoArr, todoEvent, todo = null, name = null) {
     if (event === 'push' && elem.idTodo === todoEvent.idTodo) elem.todo.push(todo);
     if (event === 'delete' && elem.idTodo === todoEvent.idTodo) elem.todo.splice(elem.todo.findIndex(elem => elem.idTodo === todo.idTodo), 1);
     if (event === 'change' && elem.idTodo === todoEvent.idTodo) elem[name] = todo;
+    if (event === 'show' && elem.idTodo === todoEvent.idTodo) elem.show = !elem.show;
     if (event === 'completed') elem.completedTodo = todo;
     if (event === 'check' && elem.idTodo === todoEvent.idTodo) {
       elem.completedTodo = todo;

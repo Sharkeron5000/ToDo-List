@@ -32,20 +32,6 @@ left: -41%;
   flex-grow: 2;
 }
 
-#SecondaryTodo {
-  display: none;
-}
-#nextTodoShow:checked + #SecondaryTodo {
-  display: block;
-}
-
-#additionalMenu {
-  display: none;
-}
-#menuShow:checked + #additionalMenu {
-  display: block;
-}
-
 ul {
   list-style: none;
 }
