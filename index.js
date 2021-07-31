@@ -171,6 +171,7 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
       const arrMap = todo.todo.map(value => value.completedTodo);
       const arrComplete = arrMap.filter(value => value === true);
       todoLengthDiv.textContent = `${arrComplete.length}\\${arrMap.length}`;
+      if(!todo.show) nextTodoDiv.classList.add('hide');
 
       detailRenderTodo(todo.todo, numIdGroup, nextTodoDiv, todo);
     }

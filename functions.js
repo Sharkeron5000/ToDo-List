@@ -91,8 +91,8 @@ export function show(idEvent, idTarget, todo = null) {
   document.getElementById(idEvent).classList.toggle('show');
   document.getElementById(idTarget).classList.toggle('hide');
 
-  const storage = localStorage.getItem('now');
-  if (idTarget === 'secondaryTodo') {
+  const storage = JSON.parse(localStorage.getItem('todoNow'));
+  if (idTarget.includes('secondaryTodo')) {
     eachArr('show', storage, todo);
     save(todo.idGroup, storage);  
   }
