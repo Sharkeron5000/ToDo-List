@@ -9,13 +9,13 @@ class Group {
   /**Идентификатор группы */
   static #id = 0;
   /**Завершена задача или нет */
-  completedGroup
+  completed
 
   constructor(text, tags, completed, idTodo = null) {
-    this.text = text || prompt('Введите название группы') || '';
+    this.text = text || prompt('Введите название группы') || 'Без названия';
     // this.tags = tags || prompt('Введите теги, через запятую', '').split(',') || [];
     this.tags = [];
-    this.completedGroup = completed || false;
+    this.completed = completed || false;
     this.idGroup = 'Group'
     if(idTodo === null) {
       this.idTodo = Group.#id
@@ -31,7 +31,7 @@ class Todo {
   /** Название задачи */
   text;
   /** Статус выполнения */
-  completedTodo;
+  completed;
   /** Теги у задачи */
   tags;
   /** Список подзадачи */
@@ -50,8 +50,8 @@ class Todo {
   static #id = 0;
 
   constructor(idGroup, parent = [], index, todo = [], text, tags, completed = false, show = true, id = null) {
-    this.text = text || prompt('Название задачи', 'Тест') || '';
-    this.completedTodo = completed;
+    this.text = text || prompt('Название задачи', 'Тест') || 'Без названия';
+    this.completed = completed;
     // this.tags = tags || prompt('Введите теги, через запятую', '').split(',') || [];
     this.tags = [];
     this.todo = todo;

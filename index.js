@@ -57,29 +57,33 @@ function renderGroupContent() {
     // Создание места для каждой группы задач
     const groupTodoDiv = document.createElement('div');
     groupTodoDiv.classList.add('todoGroup');
-    const panelDiv = document.createElement('div');
-    panelDiv.classList.add('panel');
     toGroupDiv.appendChild(groupTodoDiv);
-    toGroupDiv.appendChild(panelDiv);
-
+    
     // Создание и настройка каждого элемента группы задач
-    const elem = new Group(todo.text, todo.tags, todo.completedGroup, todo.idTodo);
+    const elem = new Group(todo.text, todo.tags, todo.completed, todo.idTodo);
     const check = document.createElement('input');
     check.type = 'checkbox';
-    check.checked = todo.completedGroup;
-    check.addEventListener('change', () => { checkCompleted(todo.completedGroup, elem) })
+    check.checked = todo.completed;
+    check.addEventListener('change', () => { checkCompleted(check.checked, elem) })
     check.classList.add('checkComplete');
     const textDiv = document.createElement('div');
     textDiv.textContent = elem.text;
     textDiv.setAttribute('todo', elem.idTodo);
-    textDiv.addEventListener('click', render)
-    const checkShow = document.createElement('input');
-    checkShow.type = 'checkbox';
-    checkShow.classList.add('checkShow');
+    textDiv.addEventListener('click', render);
+    textDiv.classList.add('text');
+    const showPanelButton = document.createElement('button');
+    showPanelButton.classList.add('checkShow');
+    showPanelButton.id = `showAdditionalPanel${elem.idTodo}`;
+    showPanelButton.textContent = '...';
+    const panelDiv = document.createElement('div');
+    panelDiv.classList.add('panel', 'hide');
+    panelDiv.id = `additionalPanelGroup${elem.idTodo}`
+    showPanelButton.addEventListener('click', () => {show(showPanelButton.id, panelDiv.id)});
     groupTodoDiv.appendChild(check);
-    groupTodoDiv.appendChild(textDiv)
-    groupTodoDiv.appendChild(checkShow)
-
+    groupTodoDiv.appendChild(textDiv);
+    groupTodoDiv.appendChild(panelDiv);
+    groupTodoDiv.appendChild(showPanelButton);
+    
     // Создание дополнительных кнопок опций
     const changeButton = document.createElement('button');
     changeButton.textContent = '✏';
@@ -105,7 +109,7 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
   todoListDiv.appendChild(listUl);
 
   todoArray.forEach((elem, index) => {
-    const todo = new Todo(numIdGroup, parentTodo, index, elem.todo, elem.text, elem.tags, elem.completedTodo, elem.show, elem.idTodo);
+    const todo = new Todo(numIdGroup, parentTodo, index, elem.todo, elem.text, elem.tags, elem.completed, elem.show, elem.idTodo);
 
     const todoLi = document.createElement('li');
     todoLi.classList.add('mainTodo');
@@ -113,13 +117,13 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
 
     const completeInput = document.createElement('input');
     completeInput.type = 'checkbox';
-    completeInput.checked = todo.completedTodo;
+    completeInput.checked = todo.completed;
     completeInput.addEventListener('change', () => { checkCompleted(completeInput.checked, todo) })
     completeInput.classList.add('completeCheck')
     const textTodoDiv = document.createElement('div');
     textTodoDiv.textContent = todo.text;
     textTodoDiv.classList.add('textTodo');
-    const todoLengthDiv = document.createElement('div');
+    const todoLengthDiv = document.createElement('sup');
     todoLengthDiv.classList.add('todoLength');
     const additionalMenuButton = document.createElement('button');
     additionalMenuButton.classList.add('button', 'menuShow');
@@ -137,13 +141,16 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
     nextTodoDiv.classList.add('secondaryTodo');
     additionalMenuButton.addEventListener('click', () => {show(additionalMenuButton.id, additionalMenuDiv.id)})
     nextTodoButton.addEventListener('click', () => {show(nextTodoButton.id, nextTodoDiv.id, todo)});
+    const breakDiv = document.createElement('div');
+    breakDiv.classList.add('break');
 
     todoLi.appendChild(completeInput);
     todoLi.appendChild(textTodoDiv);
     todoLi.appendChild(todoLengthDiv);
-    todoLi.appendChild(additionalMenuButton);
     todoLi.appendChild(additionalMenuDiv);
+    todoLi.appendChild(additionalMenuButton);
     todoLi.appendChild(nextTodoButton);
+    todoLi.appendChild(breakDiv);
     todoLi.appendChild(nextTodoDiv);
 
     const addTodoButton = document.createElement('button');
@@ -168,10 +175,13 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
       const storageNow = JSON.parse(localStorage.getItem('todoNow'));
 
       nextTodoButton.classList.remove('hide');
-      const arrMap = todo.todo.map(value => value.completedTodo);
+      const arrMap = todo.todo.map(value => value.completed);
       const arrComplete = arrMap.filter(value => value === true);
       todoLengthDiv.textContent = `${arrComplete.length}\\${arrMap.length}`;
-      if(!todo.show) nextTodoDiv.classList.add('hide');
+      if(!todo.show) {
+        nextTodoDiv.classList.add('hide');
+        nextTodoButton.classList.remove('show');
+      }
 
       detailRenderTodo(todo.todo, numIdGroup, nextTodoDiv, todo);
     }

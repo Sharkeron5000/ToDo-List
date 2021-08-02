@@ -78,7 +78,7 @@ export function checkCompleted(check, todo) {
 
 /** Удалить подзадачи в основных заданиях */
 function clear(todo, conf) {
-  todo.splice(0, todo.length, ...todo.filter(elem => !elem.completedTodo));
+  todo.splice(0, todo.length, ...todo.filter(elem => !elem.completed));
   if (conf) {
     todo.filter(elem => {
       if (elem.todo.length !== 0) clear(elem.todo)
@@ -112,10 +112,10 @@ export function eachArr(event, todoArr, todoEvent, todo = null, name = null) {
     if (event === 'delete' && elem.idTodo === todoEvent.idTodo) elem.todo.splice(elem.todo.findIndex(elem => elem.idTodo === todo.idTodo), 1);
     if (event === 'change' && elem.idTodo === todoEvent.idTodo) elem[name] = todo;
     if (event === 'show' && elem.idTodo === todoEvent.idTodo) elem.show = !elem.show;
-    if (event === 'completed') elem.completedTodo = todo;
+    if (event === 'completed') elem.completed = todo;
     if (event === 'check' && elem.idTodo === todoEvent.idTodo) {
-      elem.completedTodo = todo;
-      if (elem.todo.length !== 0) eachArr('completed', elem.todo, todoEvent, todo)
+      elem.completed = todo;
+      if (Array.isArray(elem.todo) && elem.todo.length !== 0) eachArr('completed', elem.todo, todoEvent, todo)
     }
     if (elem.todo && elem.todo.length !== 0) eachArr(event, elem.todo, todoEvent, todo, name);
   })
@@ -142,7 +142,7 @@ function deleteGroup(idElement, idGroup) {
   if (idElement === 'groupPanel') {
     const conf = confirm('Вы точно хотите удалить все завершенные группы задач?');
     if (!conf) return alert("Вы отменили удаление");
-    todoArr.splice(0, todoArr.length, ...todoArr.filter(elem => !elem.completedGroup));
+    todoArr.splice(0, todoArr.length, ...todoArr.filter(elem => !elem.completed));
   }
   if (idElement === 'basePanel') {
     const conf = confirm('Вы точно хотите удалить выполненные основные задания?');
@@ -179,7 +179,7 @@ function addWithTodo(todoParent, todo) {
 function changeTodo(name, todo) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${todo.idGroup}`));
   if (name === 'text') {
-    let newTodoText = prompt('Введите новое название задачи', 'Тест') || '';
+    let newTodoText = prompt('Введите новое название задачи', todo.text) || '';
     eachArr('change', todoArr, todo, newTodoText, name)
   }
   if (name === 'tags') {
