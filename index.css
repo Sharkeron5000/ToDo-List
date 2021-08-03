@@ -59,9 +59,6 @@ left: -41%;
   word-break:break-all;
   font-size: 18px;
 }
-.todoGroup .checkShow {
-  /* align-self: stretch */
-}
 .todoGroup .panel{
   flex-basis: content;
 }
