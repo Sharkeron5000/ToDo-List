@@ -1,5 +1,5 @@
 import { Group, Todo } from './classes.js';
-import { checkCompleted, eachArr, firstLaunch, render, renderTodo, save, show, showPanel, trigger } from './functions.js';
+import { checkCompleted, firstLaunch, render, renderTodo, show, showPanel, trigger } from './functions.js';
 
 /** Загрузить список задач с localstorage */
 function load() {
@@ -15,11 +15,11 @@ function load() {
   const todoListNow = JSON.parse(localStorage.getItem('todoNow')) || 0;
 
   if (!todoListNow || todoListNow.length === 0) {
-    const text = document.createElement('div');
-    text.classList.add('NoTodo');
-    text.id = 'noTodo';
-    text.textContent = 'Откройте меню и выберите задачу';
-    baseDiv.appendChild(text);
+    const todoTip = document.createElement('div');
+    todoTip.classList.add('noTodo');
+    todoTip.id = 'noTodo';
+    todoTip.textContent = 'Откройте меню нажав на ⇶ и выберите тему задач';
+    baseDiv.appendChild(todoTip);
   } else {
     const idGroup = todoListNow[0].idGroup;
     renderTodo(idGroup, todoListNow);
@@ -40,7 +40,13 @@ function renderGroupTodo(localstorageGroup) {
   groupListDiv.appendChild(toGroupDiv);
 
   if (localstorageGroup.length) renderGroupContent();
+  if(!localstorageGroup.length) renderGroupTip();
   renderPanelControl(groupListDiv, 'groupPanel', 'Group')
+}
+
+function renderGroupTip() {
+  const group = document.getElementById('toGroup');
+  group.textContent = 'Тем задач не найдены, нажмите ➕ чтобы создать новые'
 }
 
 
@@ -50,6 +56,7 @@ function renderGroupContent() {
   const todoGroup = JSON.parse(localStorage.getItem('todoGroup'));
 
   const toGroupDiv = document.getElementById('toGroup');
+  if(!todoGroup.length) return renderGroupTip()
   toGroupDiv.innerHTML = null;
 
   todoGroup.forEach((todo) => {
@@ -224,10 +231,12 @@ function renderPanelControl(nodeElement, idElement, idGroupTodo) {
 
 /** Рендер основного местоположения всех задач и кнопки меню */
 function menu() {
+  const mainDiv = document.createElement('div');
+  mainDiv.classList.add('main');
   const baseDiv = document.createElement('div')
   baseDiv.classList.add('base');
   baseDiv.id = 'base'
-  document.body.appendChild(baseDiv);
+  document.body.appendChild(mainDiv);
   const todoList = document.createElement('div')
   todoList.classList.add('todoList');
   todoList.id = 'todoList';
@@ -237,6 +246,7 @@ function menu() {
   menuButton.id = 'menuButton';
   menuButton.textContent = '⇶'
   menuButton.addEventListener('click', showPanel)
+  mainDiv.appendChild(baseDiv);
   baseDiv.appendChild(menuButton);
   baseDiv.appendChild(todoList)
 }

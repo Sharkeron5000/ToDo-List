@@ -1,11 +1,20 @@
 * {
-  box-sizing:border-box;
+  box-sizing: border-box;
+}
+
+html {
+  background: linear-gradient(45deg, rgba(43, 40, 119, 0.8), rgba(34, 101, 163, 0.5));
+}
+
+body {
+  width: 98vw;
+  height: 97vh;
 }
 
 .button.menu {
   position: absolute;
   top: 2%;
-  left: 42%;
+  left: 82%;
   transform: rotate(180deg);
   color: blueviolet;
   z-index: 1;
@@ -18,18 +27,19 @@
 
 .groupList {
   position: absolute;
+  background: linear-gradient(45deg, rgba(43, 40, 119, 0.8), rgba(34, 101, 163, 0.5));
   border: solid 1px #000000;
   border-radius: 5px;
   box-sizing: border-box;
   flex-flow:column nowrap;
   display: flex;
   height: 98vh;
-  width: 40%;
+  width: 80%;
   top: 1%;
   left: 1%;
 }
 .groupList.slide {
-left: -41%;
+left: -100%;
 }
 
 .groupList .panelControl {
@@ -40,13 +50,14 @@ left: -41%;
   flex-grow: 2;
   display: flex;
   flex-direction: column;
+  padding: 10px 10px 0;
 }
 
 .todoGroup {
   display: flex;
-  /* flex-wrap:wrap; */
   align-items: center;
-  margin: 10px 5px;
+  margin: 5px;
+  /* border: solid 1px black; */
 }
 .todoGroup > input {
   transform: scale(1.5);
@@ -63,11 +74,15 @@ left: -41%;
   flex-basis: content;
 }
 
-.todoList{
-margin-left: 20px;
+.todoList,
+.noTodo {
+margin-left: 60px;
+margin-top: 20px;
+display: inline-block;
 }
 
 ul {
+  padding: 0;
   display: flex;
   flex-direction: column;
   list-style: none;
@@ -78,6 +93,10 @@ li {
   flex-wrap: wrap;
   align-items: center;
   margin: 5px;
+  margin-left: 0;
+  padding: 10px;
+  border: 1px solid rgb(80, 80, 80);
+  box-shadow: 5px 5px 5px rgba(122, 122, 122, .5);
 }
 li > input {
   transform: scale(1.5);
@@ -109,7 +128,7 @@ button {
 
 .panelControl#basePanel {
   position: fixed;
-  left: 45%;
+  left: 40%;
   bottom: 10px;
 }
 

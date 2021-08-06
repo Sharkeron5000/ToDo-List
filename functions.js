@@ -179,7 +179,7 @@ function addWithTodo(todoParent, todo) {
 function changeTodo(name, todo) {
   const todoArr = JSON.parse(localStorage.getItem(`todo${todo.idGroup}`));
   if (name === 'text') {
-    let newTodoText = prompt('Введите новое название задачи', todo.text) || '';
+    let newTodoText = prompt('Введите новое название задачи', todo.text) || 'Без названия';
     eachArr('change', todoArr, todo, newTodoText, name)
   }
   if (name === 'tags') {
