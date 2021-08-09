@@ -31,7 +31,7 @@ export function renderTodo(numIdGroup, todoListNow) {
     todoListDiv.innerHTML = null;
 
     const noTodoNext = document.getElementById('todoList');
-    noTodoNext.textContent = 'Задач не найдено';
+    noTodoNext.textContent = 'Задачи не найдены, нажмите внизу на ➕ для создания новых задач';
     renderPanelControl(baseDiv, 'basePanel', numIdGroup);
     return null;
   }
