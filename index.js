@@ -170,7 +170,7 @@ function detailRenderTodo(todoArray, numIdGroup, todoListDiv, parentTodo = []) {
     mainDiv.appendChild(additionalMenuButton);
     mainDiv.appendChild(nextTodoButton);
     // mainDiv.appendChild(breakDiv);
-    mainDiv.appendChild(nextTodoDiv);
+    todoLi.appendChild(nextTodoDiv);
 
     const addTodoButton = document.createElement('button');
     addTodoButton.classList.add('button', 'addTodo');
